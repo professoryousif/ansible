@@ -1,0 +1,23 @@
+---
+- name: setup vsftpd
+  hosts:  all
+  become: yes
+  tasks:
+
+    - name: install vsftpd
+      ansible.builtin.dnf:
+        name: vsftpd
+        state:  present
+
+    - name: enable vsftpd
+      ansible.builtin.service:
+        name: vsftpd
+        enabled:  true
+        state: started 
+
+    - name: create readme file
+      ansible.builtin.copy:
+        content: "Free downloads for everyone!"
+        dest: /var/ftp/pub/README
+
+
