@@ -1,0 +1,55 @@
+---
+- name: Play one enables internet service
+  hosts: ansible1
+  become: true 
+  tasks:
+    - name: ensure latest version of all required packages installed
+      ansible.builtin.dnf:
+        name:
+          - firewalld
+          - httpd
+          - mariadb-server
+          - php
+          - php-mysqlnd
+        state: latest
+
+    - name: ensure firewalld is enabled and running
+      ansible.builtin.service:
+        name: firewalld
+        enabled: true
+        state: started
+
+    - name: ensure httpd is enabled and running
+      ansible.builtin.service:
+        name: httpd
+        enabled: true
+        state: started
+
+    - name: ensure mariadb is enabled and running
+      ansible.builtin.service:
+        name: mariadb
+        enabled: true
+        state: started
+          
+    - name: ensure firewalld permits http service
+      ansible.posix.firewalld:
+        service: http
+        permanent: true
+        state: enabled
+        immediate: yes
+
+    - name: ensure Test php page is installed
+      ansible.builtin.copy:
+        src: index.php
+        dest: /var/www/html/index.php
+        mode: 0644
+
+- name: Play two tests the internet web server
+  hosts: localhost
+  become: false
+  tasks: 
+
+    - name: ensure successful connection to the web server
+      ansible.builtin.uri:
+        url: http://ansible1.example.local
+        status_code: 200
