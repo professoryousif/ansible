@@ -1,0 +1,12 @@
+users:
+- name: devsecops1
+  groups: devsecops,wheel
+  uid: 2100
+
+- name: devsecops2
+  groups: devsecops
+  uid: 3100
+
+- name: devsecops3
+  groups: devsecops
+  uid: 4100
