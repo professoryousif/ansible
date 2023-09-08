@@ -1,0 +1,26 @@
+---
+- name: add a new user 
+  hosts: dbservers
+  vars_files:
+    - group_vars/dbservers.yml
+    - secret.yml
+  tasks:
+    - name: ensure the devsecops group exist
+      ansible.builtin.group:
+        name: devsecops
+        gid: 11000
+        state: present
+      register: group_results
+
+    - name: show resuls from adding a group
+      ansible.builtin.debug:
+        var: group_results
+    
+    - name: ensure new users are added and assigned to groups
+      ansible.builtin.user:
+        name: "{{ item.name }}"
+        groups: "{{ item.groups }}"
+        append: true
+        uid:  "{{ item.uid }}"
+        password: "{{ pwhash | password_hash }}" 
+      loop: "{{ users }}"
