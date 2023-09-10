@@ -1,0 +1,16 @@
+---
+- name: gather some host facts
+  hosts: ansible1
+  tasks:
+
+    - name: gather distribution and kernel info
+      ansible.builtin.debug:
+        msg: Linux Distro {{ ansible_facts.distribution }} {{ ansible_facts.distribution_version }} and kernel {{ ansible_facts.kernel }}
+
+    - name: gather ip facts
+      ansible.builtin.debug:
+        msg: System ip address {{ ansible_facts.default_ipv4.address }} on interface {{ ansible_facts.default_ipv4.alias }} and DNS server {{ ansible_facts.dns.nameservers }}
+
+    - name: gather CPU facts
+      ansible.builtin.debug:
+        msg: System's CPU count {{ ansible_facts.processor_count }} on {{ ansible_facts.processor_cores }} core and Product name {{ ansible_facts.processor }}
