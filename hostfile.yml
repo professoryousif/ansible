@@ -1,0 +1,11 @@
+---
+- name: dynamically update the /etc/hosts file on managed nodes
+  hosts: dbservers
+  become: true
+  become_method: sudo
+  become_user: root
+  tasks:
+    - name: deploy a jinja template to dynamically update the hosts file based on inventory
+      ansible.builtin.template:
+        src: templates/hosts.j2
+        dest: /etc/hosts
