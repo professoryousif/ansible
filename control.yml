@@ -1,0 +1,68 @@
+---
+- name: playbook control lab
+  hosts: dbservers
+  vars_files: group_vars/dbservers.yml
+  tasks:
+    #Fail Fast Message
+    - name: show failed system requirments message
+      ansible.builtin.fail:
+        msg: "the {{  inventory_hostname }} didn't meet minimum reqs."
+      when: >
+        ansible_memtotal_mb < min_ram_mb or
+        ansible_distribution != "RedHat"
+ 
+    #install all packages
+    - name: ensure required packages are present
+      ansible.builtin.dnf:
+        name: "{{ packages }}"
+        state: latest
+
+    #enable and start services
+    - name: ensure services are started and enabled
+      ansible.builtin.service:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      loop: "{{ services }}"
+
+    #this is a block of config tasks to setup https files
+    - name: setting up the ssl cert dir and conf files
+      block:
+        - name: create ssl cert dir
+          ansible.builtin.file:
+            path: "{{ ssl_cert_dir }}"
+            state: directory
+
+        - name: copy config files
+          ansible.builtin.copy:
+            src: "{{ item.src }}"
+            dest: "{{ item.dest }}"
+          loop: "{{ web_conf_files }}"
+          notify: restart web svc
+
+      rescue:
+        - name: Display a configuration error message
+          ansible.builtin.debug:
+            msg: >
+              One or more of the configuration
+              changes failed, but the web service
+              is still active.
+
+    #Configure the firewall
+    - name: ensure web server ports are open
+      ansible.posix.firewalld:
+        service: "{{ item }}"
+        immediate: true
+        permanent: true
+        state: enabled 
+      loop:
+        - http
+        - https
+
+  #Add handlers
+  handlers:
+    - name: restart web svc
+      ansible.builtin.service:
+        name: "{{ web_svc }}"
+        state: restarted
+
