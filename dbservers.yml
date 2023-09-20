@@ -1,3 +1,4 @@
+# this section is for defining variables and lists used in creating user accounts
 users:
 - name: devsecops1
   groups: devsecops,wheel
@@ -10,3 +11,35 @@ users:
 - name: devsecops3
   groups: devsecops
   uid: 4100
+
+# this section is for defining variables related to system hardware requirements
+min_ram_mb: 256
+
+# this section is for defining variables related to packages
+web_pkg: httpd
+ssl_pkg: mod_ssl
+fw_pkg: firewalld
+
+# this section is for defining variables related to services
+fw_svc: firewalld
+web_svc: httpd
+
+# list of services
+services:
+  - "{{ fw_svc }}"
+  - "{{ web_svc }}"
+# list of packages
+packages: 
+  - "{{ web_pkg }}"
+  - "{{ ssl_pkg }}"
+  - "{{ fw_pkg }}"
+
+# this section is for defining variables related to 
+ssl_cert_dir: /etc/httpd/conf.d/ssl
+web_conf_files:
+  - src: server.keystore
+    dest: "{{ ssl_cert_dir }}"
+  - src: server.crt
+    dest: "{{ ssl_cert_dir }}"
+  - src: index.html
+    dest: /var/www/html 
