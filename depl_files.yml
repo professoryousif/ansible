@@ -1,0 +1,77 @@
+---
+- name: Play one uses the fetch module to retrieve secure log files
+  hosts: dbservers
+  remote_user: ansible
+  become: yes
+  tasks: 
+    - name: Fetch the /var/log/secure log file from managed hosts
+      ansible.builtin.fetch:
+        src: /var/log/secure
+        dest: secure-backups
+        flat: no
+
+- name: Play two uses the copy module to copy files to managed nodes
+  hosts: dbservers
+  remote_user: ansible
+  become: yes
+  tasks:
+    - name: Ensure the users.txt file is copied to managed hosts and set attr
+      ansible.builtin.copy: 
+        src: files/users.txt
+        dest: /home/ansible/users.txt
+        owner: ansible
+        group: ansible
+        mode: u+rw,g-wx,o-rwx
+        setype: samba_share_t
+
+- name: Play three uses the line-in-file module to append a line
+  hosts: dbservers
+  remote_user: ansible
+  become: yes
+  tasks:
+    - name: Ensure this line is appended to the file
+      ansible.builtin.lineinfile:
+        path: /home/ansible/users.txt
+        line: awk is used as a data extraction and reporting tool.
+        state: present
+
+- name: Play four uses the block-in-file module to append a block of lines
+  hosts: dbservers
+  remote_user: ansible
+  become: yes
+  tasks:
+    - name: Ensure this block of lines is add to the file
+      ansible.builtin.blockinfile:
+        path: /home/ansible/users.txt
+        block: |
+          This block of text has the awk command to extract columns.
+          In this example we only print columns 1, 3, and 4 from example.txt
+          awk '{FS=":"}{print $1,$3,$4}' example.txt"
+          Notice that FS specifies the filed or column seperator to be a colon. 
+
+- name: Play five checks the current selinux context then restores to default context.
+  hosts: dbservers
+  remote_user: ansible
+  become: yes
+  tasks:
+    - name: get the selinux context using the ls command
+      ansible.builtin.command: ls -lZ /home/ansible/users.txt
+      register: se_con
+
+    - name:  Use the debug module to disply the current selinux context
+      ansible.builtin.debug:
+        msg: "{{se_con.stdout}}"
+     
+
+    - name: Pause for a minute to review the results of the playbook
+      ansible.builtin.pause: 
+        minutes: 1
+        prompt: "Examine the selinux context before it gets reset to default."
+
+    - name: Reset the selinux context for the users.txt file
+      ansible.builtin.file: 
+        path: /home/ansible/users.txt
+        seuser: _default
+        serole: _default
+        setype: _default
+        selevel: _default
