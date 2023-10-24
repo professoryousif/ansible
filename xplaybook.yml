@@ -1,0 +1,25 @@
+---
+- name: Test host patterns
+  import_playbook: plays/host_test.yml
+
+- name: Set up web servers
+  hosts: dbservers
+  tasks:
+    - name: import task file to install and enable httpd
+      import_tasks: tasks/web_tasks.yml
+      vars:
+        pkg: httpd
+        svc: httpd
+
+    - name: import task file to setup the firewall for httpd
+      import_tasks: tasks/firewall_tasks.yml
+      vars:
+        rule:
+          - http
+          - https
+          
+  handlers:
+    - name: restart httpd
+      ansible.builtin.service:
+        name: httpd
+        state: restarted
