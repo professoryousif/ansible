@@ -1,0 +1,19 @@
+---
+  - name: ensure firewall pkg installed
+    ansible.builtin.dnf:
+      name: firewalld
+      state: latest
+
+  - name: ensure firewalld is started
+    ansible.builtin.service:
+      name: firewalld
+      enabled: true
+      state: started
+
+  - name: ensure firewall {{ rule }} implemented 
+    ansible.posix.firewalld:
+      service: "{{ item }}"
+      immediate: true
+      permanent: true
+      state: enabled
+    loop: "{{ rule }}"

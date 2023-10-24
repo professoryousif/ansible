@@ -1,0 +1,21 @@
+---
+  - name: Ensure {{ package }} installed
+    ansible.builtin.dnf:
+      name: "{{ pkg }}"
+      state: latest
+
+  - name: Ensure {{ service }} started
+    ansible.builtin.service:
+      name: "{{ svc }}"
+      enabled: true
+      state: started
+
+  - name: Ensure tunning configuration installed
+    ansible.builtin.copy:
+      src: files/tune.conf
+      dest: /etc/httpd/conf.d/tune.conf
+      owner: root
+      group: root
+      mode: 0644
+    notify:
+      - restart httpd
